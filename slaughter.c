@@ -27,17 +27,11 @@ void print_usage()
 
 int wait_for_termination(pid_t pid, unsigned seconds)
 {
-    char *path = NULL;
-    struct stat s;
     int rc;
 
-    asprintf(&path, "/proc/%u", pid);
-
-    while (0 == (rc = stat(path, &s)) && seconds-- > 0) {
+    while (0 != (rc = kill(pid, 0)) && seconds-- > 0) {
         sleep(1);
     }
-
-    free(path);
 
     if (0 == rc) {
         rc = -1;
