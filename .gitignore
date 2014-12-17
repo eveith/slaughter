@@ -27,3 +27,21 @@
 *.i*86
 *.x86_64
 *.hex
+
+# Automake-generated files
+configure
+sl
+Makefile.in
+config.status
+missing
+slaughter.o
+install-sh
+depcomp
+config.h.in
+aclocal.m4
+config.h
+stamp-h1
+.deps
+Makefile
+config.log
+autom4te.cache
