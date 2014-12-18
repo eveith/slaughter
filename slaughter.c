@@ -21,7 +21,9 @@ void print_usage()
             "Usage: sl [-s SECS] PID\n\n"
             "Options:\n\n"
             "-w SECS    Wait SECS seconds for the process to end\n"
-            "           (Default: 15 seconds)\n");
+            "           (Default: 15 seconds)\n"
+            "-e         Waits until the process has terminated "
+                "and does not time out.\n");
 }
 
 
@@ -29,8 +31,11 @@ int wait_for_termination(pid_t pid, unsigned seconds)
 {
     int rc;
 
-    while (0 != (rc = kill(pid, 0)) && seconds-- > 0) {
+    while (0 != (rc = kill(pid, 0))) {
         sleep(1);
+        if (seconds != -1 && 0 == seconds--) {
+            break;
+        }
     }
 
     if (0 == rc) {
@@ -46,13 +51,18 @@ int wait_for_termination(pid_t pid, unsigned seconds)
 int main(int argc, char *argv[])
 {
     pid_t pid;
-    unsigned waitsecs = DEFAULTWAIT;
+    unsigned waitsecs = DEFAULTWAIT,
+        wait_endlessly;
+
     int waitrc, c;
 
-    while (-1 != (c = getopt(argc, argv, "hs:"))) {
+    while (-1 != (c = getopt(argc, argv, "ehs:"))) {
         switch (c) {
             case 'w':
                 waitsecs = (unsigned)strtoul(optarg, NULL, 10);
+                break;
+            case 'e':
+                wait_endlessly = 1;
                 break;
             case 'h':
                 print_usage();
@@ -76,6 +86,7 @@ int main(int argc, char *argv[])
     kill(pid, 1);
     if (0 == wait_for_termination(pid, waitsecs)) goto success;
     kill(pid, 9);
+    if (wait_endlessly) waitsecs = -1;
     if (0 == wait_for_termination(pid, waitsecs)) goto success;
 
     exit(2); /* Could not terminate the process */
